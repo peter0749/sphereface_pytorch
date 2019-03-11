@@ -34,7 +34,7 @@ def KFold(n=6000, n_folds=10, shuffle=False):
     folds = []
     base = list(range(n))
     for i in range(n_folds):
-        test = base[i*n/n_folds:(i+1)*n/n_folds]
+        test = base[i*n//n_folds:(i+1)*n//n_folds]
         train = list(set(base)-set(test))
         folds.append([train,test])
     return folds
@@ -108,7 +108,8 @@ for i in range(6000):
         imglist[i] = (imglist[i]-127.5)/128.0
 
     img = np.vstack(imglist)
-    img = Variable(torch.from_numpy(img).float(),volatile=True).cuda()
+    with torch.no_grad():
+        img = Variable(torch.from_numpy(img).float()).cuda()
     output = net(img)
     f = output.data
     f1,f2 = f[0],f[2]
