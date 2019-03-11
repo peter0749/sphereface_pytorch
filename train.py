@@ -39,10 +39,14 @@ def alignment(src_img,src_pts):
     return face_img
 
 
-def dataset_load(name,filename,pindex,cacheobj,zfile):
-    position = filename.rfind('.zip:')
-    zipfilename = filename[0:position+4]
-    nameinzip = filename[position+5:]
+def dataset_load(name,filename,pindex,cacheobj,zfile,imageroot):
+    read_from_dir = True if zfile is None else False
+    if read_from_dir:
+        nameinzip = filename
+    else:
+        position = filename.rfind('.zip:')
+        zipfilename = filename[0:position+4]
+        nameinzip = filename[position+5:]
 
     split = nameinzip.split('\t')
     nameinzip = split[0]
@@ -51,7 +55,11 @@ def dataset_load(name,filename,pindex,cacheobj,zfile):
     for i in range(5):
         src_pts.append([int(split[2*i+2]),int(split[2*i+3])])
 
-    data = np.frombuffer(zfile.read(nameinzip),np.uint8)
+    if read_from_dir:
+        with open(imageroot+'/'+nameinzip, 'rb') as fp:
+            data = np.frombuffer(fp.read(),np.uint8)
+    else:
+        data = np.frombuffer(zfile.read(nameinzip),np.uint8)
     img = cv2.imdecode(data,1)
     img = alignment(img,src_pts)
 
@@ -110,18 +118,18 @@ def train(epoch,args):
         inputs, targets = Variable(inputs), Variable(targets)
         outputs = net(inputs)
         loss = criterion(outputs, targets)
-        lossd = loss.data[0]
+        lossd = loss.item()
         loss.backward()
         optimizer.step()
 
-        train_loss += loss.data[0]
+        train_loss += loss.item()
         outputs = outputs[0] # 0=cos_theta 1=phi_theta
         _, predicted = torch.max(outputs.data, 1)
         total += targets.size(0)
         correct += predicted.eq(targets.data).cpu().sum()
 
         printoneline(dt(),'Te=%d Loss=%.4f | AccT=%.4f%% (%d/%d) %.4f %.2f %d'
-            % (epoch,train_loss/(batch_idx+1), 100.0*correct/total, correct, total, 
+            % (epoch,train_loss/(batch_idx+1), 100.0*correct/total, correct, total,
             lossd, criterion.lamb, criterion.it))
         batch_idx += 1
     print('')

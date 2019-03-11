@@ -23,7 +23,7 @@ def return_batchdata(result,imagelist,labellist,pathlist,freearr,nparrimage,npar
     del pathlist[:]
 
 
-def dataset_handle(name,filelist,result,callback,bs,pindex,freearr,arrimage,arrlabel,zfile):
+def dataset_handle(name,filelist,result,callback,bs,pindex,freearr,arrimage,arrlabel,zfile,imageroot):
     cacheobj = type('', (), {})
     imagelist = []
     labellist = []
@@ -35,7 +35,7 @@ def dataset_handle(name,filelist,result,callback,bs,pindex,freearr,arrimage,arrl
         if filename.endswith('\n'): filename=filename[:-1]
         if filename=='FINISH': break
 
-        data = callback(name,filename,pindex,cacheobj,zfile)
+        data = callback(name,filename,pindex,cacheobj,zfile,imageroot)
         if data is not None:
             imagelist.append(data[0])
             labellist.append(data[1])
@@ -105,7 +105,7 @@ class ImageDataset(object):
         for i in range(nthread):
             self.filelist.put('FINISH')
             p = Process(target=dataset_handle, args=(self.name,self.filelist,self.result,self.callback,self.bs,i,
-                            self.freearr,self.arrimage,self.arrlabel,self.zfile))
+                            self.freearr,self.arrimage,self.arrlabel,self.zfile,imageroot))
             p.start()
 
     def get(self):
