@@ -33,6 +33,7 @@ class AngleLoss(nn.Module):
     def __init__(self, gamma=0):
         super(AngleLoss, self).__init__()
         self.gamma   = gamma
+        self.it = 0
 
     def forward(self, input, target):
         cos_theta,phi_theta = input
@@ -53,6 +54,7 @@ class AngleLoss(nn.Module):
 
         loss = -1 * (1-pt)**self.gamma * logpt
         loss = loss.mean()
+        self.it += 1
 
         return loss
 
