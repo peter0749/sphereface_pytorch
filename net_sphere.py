@@ -12,7 +12,6 @@ class AngleLinear(nn.Module):
         self.out_features = out_features
         self.weight = Parameter(torch.Tensor(in_features,out_features))
         self.weight.data.uniform_(-1, 1).renorm_(2,1,1e-5).mul_(1e5)
-        self.phiflag = phiflag
         self.m = m
         self.s = s
 
