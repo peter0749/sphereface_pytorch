@@ -33,9 +33,13 @@ class AngleLoss(nn.Module):
     def __init__(self, gamma=0):
         super(AngleLoss, self).__init__()
         self.gamma   = gamma
+        self.LambdaMin = 5.0
+        self.LambdaMax = 1500.0
+        self.lamb = 1500.0
         self.it = 0
 
     def forward(self, input, target):
+        self.it += 1
         cos_theta,phi_theta = input
         target = target.view(-1,1) #size=(B,1)
 
@@ -44,8 +48,11 @@ class AngleLoss(nn.Module):
         index = index.byte()
         index = Variable(index)
 
+        self.lamb = max(self.LambdaMin,self.LambdaMax/(1+0.1*self.it ))
+
         output = cos_theta * 1.0 #size=(B,Classnum)
-        output[index] = phi_theta[index] * 1.0
+        output[index] -= cos_theta[index]*(1.0+0)/(1+self.lamb)
+        output[index] += phi_theta[index]*(1.0+0)/(1+self.lamb)
 
         logpt = F.log_softmax(output, dim=-1)
         logpt = logpt.gather(1,target)
@@ -54,7 +61,6 @@ class AngleLoss(nn.Module):
 
         loss = -1 * (1-pt)**self.gamma * logpt
         loss = loss.mean()
-        self.it += 1
 
         return loss
 
