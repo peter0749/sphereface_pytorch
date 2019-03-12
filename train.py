@@ -21,6 +21,7 @@ parser.add_argument('--net','-n', default='sphere20a', type=str)
 parser.add_argument('--dataset', default='../../dataset/face/casia/casia.zip', type=str)
 parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 parser.add_argument('--bs', default=256, type=int, help='')
+parser.add_argument('--epochs', default=25, type=int, help='')
 args = parser.parse_args()
 use_cuda = torch.cuda.is_available()
 
@@ -56,7 +57,8 @@ def dataset_load(name,filename,pindex,cacheobj,zfile,imageroot):
         src_pts.append([int(split[2*i+2]),int(split[2*i+3])])
 
     if read_from_dir:
-        with open(imageroot+'/'+nameinzip, 'rb') as fp:
+        fullpath = nameinzip if nameinzip.startswith(imageroot) else imageroot+'/'+nameinzip
+        with open(fullpath, 'rb') as fp:
             data = np.frombuffer(fp.read(),np.uint8)
     else:
         data = np.frombuffer(zfile.read(nameinzip),np.uint8)
@@ -142,7 +144,7 @@ criterion = net_sphere.AngleLoss()
 
 
 print('start: time={}'.format(dt()))
-for epoch in range(0, 20):
+for epoch in range(0, args.epochs):
     if epoch in [0,10,15,18]:
         if epoch!=0: args.lr *= 0.1
         optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
