@@ -33,7 +33,7 @@ class AngleLoss(nn.Module):
     def __init__(self, gamma=0):
         super(AngleLoss, self).__init__()
         self.gamma   = gamma
-        self.LambdaMin = 5.0
+        self.LambdaMin = 1e-3
         self.LambdaMax = 1500.0
         self.lamb = 1500.0
         self.it = 0
